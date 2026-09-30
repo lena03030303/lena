@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國小六年級自然：電動機（馬達）互動模擬教室</title>
+  <style>
+    :root {
+      --primary: #0077b6;
+      --accent: #48cae4;
+      --n-pole: #ef233c;
+      --s-pole: #0077b6;
+      --coil: #ffb703;
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.16);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --font-family: 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 15%, #0f2744 0%, #071324 60%, #030811 100%);
+      color: var(--text);
+      font-family: var(--font-family);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 20px 50px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 950px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .brand-title h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #48cae4, #ffb703);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+
+    .nav-actions { display: flex; gap: 10px; }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.22); transform: translateY(-2px); }
+    .nav-btn.home-btn { background: linear-gradient(135deg, #0077b6, #023e8a); border-color: var(--accent); }
+
+    .main-stage {
+      width: 100%;
+      max-width: 950px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    .sim-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+    }
+
+    #motorCanvas {
+      width: 100%;
+      height: 380px;
+      background: #060e1c;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    .controls-panel {
+      margin-top: 18px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-2px); }
+    .ctrl-btn.active {
+      background: linear-gradient(135deg, #06d6a0, #0096c7);
+      border-color: #06d6a0;
+      box-shadow: 0 0 15px rgba(6, 214, 160, 0.4);
+    }
+
+    /* 資訊與知識卡片 */
+    .info-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .info-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .part-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 4px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .part-item strong { color: #fff; }
+
+    .secret-box {
+      background: rgba(255, 183, 3, 0.12);
+      border: 1px dashed var(--coil);
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #ffdd00;
+    }
+
+    @media (max-width: 820px) {
+      .main-stage { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">
+      <h1>⚡ 電動機（馬達）互動模擬教室</h1>
+      <div class="brand-subtitle">國小六年級自然・電磁作用與直流馬達原理</div>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-btn home-btn">
+        <span>🏠</span> 返回首頁
+      </a>
+      <a href="a2.html" class="nav-btn">
+        <span>📦</span> 展開圖 (a2)
+      </a>
+    </div>
+  </header>
+
+  <main class="main-stage">
+    <!-- 互動模擬視窗 -->
+    <div class="sim-card">
+      <canvas id="motorCanvas"></canvas>
+
+      <div class="controls-panel">
+        <button class="ctrl-btn active" id="btnPower">
+          <span>⏹</span> 運轉中 (電源開)
+        </button>
+        <button class="ctrl-btn" id="btnReverse">
+          <span>🔄</span> 反轉電流方向
+        </button>
+        <button class="ctrl-btn" id="btnSpeed">
+          <span>⏩</span> 速度: 正常
+        </button>
+        <button class="ctrl-btn" id="btnField">
+          <span>🧲</span> 磁力線: 顯示
+        </button>
+      </div>
+    </div>
+
+    <!-- 構造解說面板 -->
+    <div class="info-card">
+      <h2 class="info-title">🔍 電動機四大構造：</h2>
+
+      <div class="part-item" style="border-color: #ef233c;">
+        <strong>1. 永久磁鐵 (N/S極)：</strong><br>
+        提供穩定的水平磁場（紅色 N 極指向藍色 S 極）。
+      </div>
+
+      <div class="part-item" style="border-color: #ffb703;">
+        <strong>2. 電樞線圈 (Coil)：</strong><br>
+        通電後產生電磁場，在永久磁鐵的磁場中受到磁力作用而旋轉。
+      </div>
+
+      <div class="part-item" style="border-color: #48cae4;">
+        <strong>3. 半圓形換向器 (Commutator)：</strong><br>
+        每旋轉半圈（180度）就自動切換通入線圈的電流方向！
+      </div>
+
+      <div class="part-item" style="border-color: #a7c957;">
+        <strong>4. 電刷 (Brushes)：</strong><br>
+        摩擦接觸換向器，將電池直流電平穩導入旋轉的線圈中。
+      </div>
+
+      <div class="secret-box">
+        💡 <strong>六年級思考題：</strong><br>
+        如果沒有「換向器」，線圈轉到垂直位置就會被反向磁力拉住擺動而停下。換向器適時改變電流方向，才能讓馬達朝同一方向連續轉動！
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('motorCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    let isRunning = true;
+    let direction = 1; // 1: 順時針, -1: 逆時針
+    let speedLevel = 1; // 0.5: 慢, 1: 正常, 2: 快
+    let showField = true;
+    let angle = 0;
+
+    // 控制項事件
+    const btnPower = document.getElementById('btnPower');
+    btnPower.addEventListener('click', () => {
+      isRunning = !isRunning;
+      btnPower.innerHTML = isRunning ? '<span>⏹</span> 運轉中 (電源開)' : '<span>▶</span> 已暫停 (點擊啟動)';
+      btnPower.classList.toggle('active', isRunning);
+    });
+
+    const btnReverse = document.getElementById('btnReverse');
+    btnReverse.addEventListener('click', () => {
+      direction *= -1;
+      btnReverse.innerHTML = direction === 1 ? '<span>🔄</span> 順時針轉動' : '<span>🔄</span> 逆時針轉動';
+    });
+
+    const btnSpeed = document.getElementById('btnSpeed');
+    btnSpeed.addEventListener('click', () => {
+      if (speedLevel === 1) { speedLevel = 2; btnSpeed.innerHTML = '<span>⏩</span> 速度: 快速'; }
+      else if (speedLevel === 2) { speedLevel = 0.4; btnSpeed.innerHTML = '<span>⏩</span> 速度: 慢速'; }
+      else { speedLevel = 1; btnSpeed.innerHTML = '<span>⏩</span> 速度: 正常'; }
+    });
+
+    const btnField = document.getElementById('btnField');
+    btnField.addEventListener('click', () => {
+      showField = !showField;
+      btnField.innerHTML = showField ? '<span>🧲</span> 磁力線: 顯示' : '<span>🧲</span> 磁力線: 隱藏';
+    });
+
+    function draw() {
+      requestAnimationFrame(draw);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2 - 15;
+
+      // 1. 繪製永久磁鐵 (N 極紅色在左，S 極藍色在右)
+      const magWidth = 55;
+      const magHeight = 160;
+
+      // N 極 (左側)
+      const nGrad = ctx.createLinearGradient(15, cy - magHeight / 2, 15 + magWidth, cy - magHeight / 2);
+      nGrad.addColorStop(0, '#c1121f');
+      nGrad.addColorStop(1, '#ef233c');
+      ctx.fillStyle = nGrad;
+      ctx.fillRect(20, cy - magHeight / 2, magWidth, magHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('N', 20 + magWidth / 2, cy + 10);
+
+      // S 極 (右側)
+      const sGrad = ctx.createLinearGradient(w - 20 - magWidth, cy - magHeight / 2, w - 20, cy - magHeight / 2);
+      sGrad.addColorStop(0, '#0077b6');
+      sGrad.addColorStop(1, '#03045e');
+      ctx.fillStyle = sGrad;
+      ctx.fillRect(w - 20 - magWidth, cy - magHeight / 2, magWidth, magHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('S', w - 20 - magWidth / 2, cy + 10);
+
+      // 2. 磁力線 (N -> S)
+      if (showField) {
+        ctx.strokeStyle = 'rgba(72, 202, 228, 0.28)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 6]);
+        for (let y = cy - 60; y <= cy + 60; y += 30) {
+          ctx.beginPath();
+          ctx.moveTo(20 + magWidth + 5, y);
+          ctx.lineTo(w - 20 - magWidth - 5, y);
+          ctx.stroke();
+
+          // 箭頭
+          ctx.fillStyle = 'rgba(72, 202, 228, 0.4)';
+          ctx.beginPath();
+          ctx.moveTo(cx + 10, y);
+          ctx.lineTo(cx, y - 4);
+          ctx.lineTo(cx, y + 4);
+          ctx.fill();
+        }
+        ctx.setLineDash([]);
+      }
+
+      // 3. 轉動計算
+      if (isRunning) {
+        angle += 0.04 * speedLevel * direction;
+      }
+
+      // 4. 線圈立體透視模擬
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      const coilRadius = 90;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+
+      // 線圈邊框
+      ctx.lineWidth = 9;
+      ctx.strokeStyle = '#ffb703';
+      ctx.shadowColor = 'rgba(255, 183, 3, 0.6)';
+      ctx.shadowBlur = 12;
+
+      ctx.beginPath();
+      // 上半段線圈
+      ctx.moveTo(-coilRadius * cosA, -50);
+      ctx.lineTo(coilRadius * cosA, -50);
+      // 右垂直段
+      ctx.lineTo(coilRadius * cosA, 50);
+      // 下半段
+      ctx.lineTo(-coilRadius * cosA, 50);
+      // 左垂直段
+      ctx.closePath();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 電流流向箭頭
+      ctx.fillStyle = '#06d6a0';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(direction === 1 ? '電流 ▶' : '◀ 電流', 0, -56);
+
+      // 旋轉轉軸 (Shaft)
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(-6, -80, 12, 160);
+
+      // 換向器 (Commutator) 半圓環
+      ctx.fillStyle = '#f77f00';
+      ctx.beginPath();
+      ctx.arc(0, 75, 16, 0, Math.PI);
+      ctx.fill();
+
+      ctx.restore();
+
+      // 5. 電刷 (固定外側)
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(cx - 24, cy + 70, 7, 12);
+      ctx.fillRect(cx + 17, cy + 70, 7, 12);
+
+      // 導線延伸至電池
+      ctx.strokeStyle = '#ef233c';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 24, cy + 76);
+      ctx.lineTo(cx - 50, cy + 76);
+      ctx.lineTo(cx - 50, cy + 130);
+      ctx.lineTo(cx - 15, cy + 130);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#0077b6';
+      ctx.beginPath();
+      ctx.moveTo(cx + 24, cy + 76);
+      ctx.lineTo(cx + 50, cy + 76);
+      ctx.lineTo(cx + 50, cy + 130);
+      ctx.lineTo(cx + 15, cy + 130);
+      ctx.stroke();
+
+      // 電池圖標
+      ctx.fillStyle = '#ffb703';
+      ctx.fillRect(cx - 15, cy + 120, 30, 20);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('DC 直流電', cx, cy + 134);
+    }
+
+    draw();
+  </script>
+</body>
+</html>
