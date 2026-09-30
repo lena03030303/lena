@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國小六年級數學：立體圖形展開圖 3D 互動教室</title>
+  <style>
+    :root {
+      --primary: #f72585;
+      --accent: #ffb703;
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.16);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --font-family: 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 15%, #2b0938 0%, #150522 55%, #08020e 100%);
+      color: var(--text);
+      font-family: var(--font-family);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 20px 50px;
+      perspective: 1000px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 950px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .brand-title h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #ffb703, #f72585);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+
+    .nav-actions { display: flex; gap: 10px; }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.22); transform: translateY(-2px); }
+    .nav-btn.home-btn { background: linear-gradient(135deg, #7209b7, #3a0ca3); border-color: var(--primary); }
+
+    .main-stage {
+      width: 100%;
+      max-width: 950px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    .display-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+    }
+
+    /* 3D 展開圖舞台 */
+    .scene-3d {
+      width: 100%;
+      height: 380px;
+      background: #0d0414;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      perspective: 800px;
+    }
+
+    .shape-container {
+      width: 100px;
+      height: 100px;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(-25deg) rotateY(35deg);
+      transition: transform 0.2s ease;
+    }
+
+    /* 正方體展開面樣式 */
+    .cube-face {
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      transform-origin: center center;
+    }
+
+    .face-base   { background: rgba(247, 37, 133, 0.6); }
+    .face-front  { background: rgba(76, 201, 240, 0.6); transform-origin: bottom center; }
+    .face-back   { background: rgba(255, 183, 3, 0.6); transform-origin: top center; }
+    .face-left   { background: rgba(6, 214, 160, 0.6); transform-origin: left center; }
+    .face-right  { background: rgba(114, 9, 183, 0.6); transform-origin: right center; }
+    .face-top    { background: rgba(239, 71, 111, 0.6); transform-origin: top center; }
+
+    /* 控制滑桿區 */
+    .slider-box {
+      width: 100%;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--primary);
+      height: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .shape-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .shape-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .shape-btn:hover { background: rgba(255, 255, 255, 0.2); }
+    .shape-btn.active {
+      background: var(--primary);
+      border-color: transparent;
+      box-shadow: 0 0 15px rgba(247, 37, 133, 0.5);
+    }
+
+    /* 資訊與幾何小卡 */
+    .info-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .info-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .geo-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+
+    .geo-stat-box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .stat-num {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .stat-name {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .tips-box {
+      background: rgba(247, 37, 133, 0.12);
+      border-left: 4px solid var(--primary);
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 820px) {
+      .main-stage { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">
+      <h1>📦 立體圖形展開圖 3D 互動教室</h1>
+      <div class="brand-subtitle">國小六年級數學・空間透視、展開與摺疊動態</div>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="nav-btn home-btn">
+        <span>🏠</span> 返回首頁
+      </a>
+      <a href="a1.html" class="nav-btn">
+        <span>⚡</span> 電動機 (a1)
+      </a>
+    </div>
+  </header>
+
+  <main class="main-stage">
+    <!-- 3D 互動展示區 -->
+    <div class="display-card">
+      <div class="scene-3d" id="scene3D">
+        <div class="shape-container" id="cubeMesh">
+          <!-- 6 個面：底、前、後、左、右、上 -->
+          <div class="cube-face face-base" id="faceBase">底面</div>
+          <div class="cube-face face-front" id="faceFront">前</div>
+          <div class="cube-face face-back" id="faceBack">後</div>
+          <div class="cube-face face-left" id="faceLeft">左</div>
+          <div class="cube-face face-right" id="faceRight">右</div>
+          <div class="cube-face face-top" id="faceTop">上面</div>
+        </div>
+      </div>
+
+      <!-- 展開 / 摺疊動態控制滑桿 -->
+      <div class="slider-box">
+        <div class="slider-label">
+          <span>展開程度 (0% 平面 ➜ 100% 立體)</span>
+          <span id="foldPercent">100% (立體)</span>
+        </div>
+        <input type="range" id="foldRange" min="0" max="100" value="100">
+      </div>
+
+      <!-- 圖形切換選單 -->
+      <div class="shape-selector">
+        <button class="shape-btn active" data-shape="cube">正方體 (11種展開圖經典)</button>
+        <button class="shape-btn" data-shape="rect">長方體 (四邊柱)</button>
+        <button class="shape-btn" data-shape="tri">三角柱</button>
+      </div>
+    </div>
+
+    <!-- 幾何性質與考點面板 -->
+    <div class="info-card">
+      <h2 class="info-title" id="shapeTitle">🧊 正方體 (Cube) 幾何特徵：</h2>
+
+      <div class="geo-stat-grid">
+        <div class="geo-stat-box">
+          <div class="stat-num" id="statFaces">6</div>
+          <div class="stat-name">面數 (Faces)</div>
+        </div>
+        <div class="geo-stat-box">
+          <div class="stat-num" id="statEdges">12</div>
+          <div class="stat-name">邊數 (Edges)</div>
+        </div>
+        <div class="geo-stat-box">
+          <div class="stat-num" id="statVertices">8</div>
+          <div class="stat-name">頂點 (Vertices)</div>
+        </div>
+      </div>
+
+      <div class="tips-box">
+        💡 <strong>六年級幾何大考點：</strong><br>
+        1. <strong>相對面判斷：</strong> 展開圖中「相隔一個面」或「Z 字型兩端」的面在摺成立體後必互為「相對面」，永不相鄰。<br>
+        2. <strong>摺疊檢查：</strong> 正方體共有 11 種標準展開圖（如「一四一」、「二三一」等），不會出現「田字型」或「凹字型」，否則面會重疊！
+      </div>
+
+      <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+        🖱️ 提示：拖曳滑桿觀察「平面展開」與「立體成形」的面面相扣過程！
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const foldRange = document.getElementById('foldRange');
+    const foldPercent = document.getElementById('foldPercent');
+
+    const faceFront = document.getElementById('faceFront');
+    const faceBack = document.getElementById('faceBack');
+    const faceLeft = document.getElementById('faceLeft');
+    const faceRight = document.getElementById('faceRight');
+    const faceTop = document.getElementById('faceTop');
+
+    // 展開圖摺疊角度演算法 (0% 展開平躺在底面周圍 ~ 100% 垂直 90 度合成立體)
+    function updateFold(percent) {
+      foldPercent.innerText = `${percent}% ${percent === 0 ? '(全平展開)' : percent === 100 ? '(立體成形)' : '(摺疊中)'}`;
+      const factor = percent / 100;
+      const angle = 90 * factor;
+
+      // 前面：繞下緣向前摺疊
+      faceFront.style.transform = `translateY(90px) rotateX(${-angle}deg)`;
+      // 後面：繞上緣向後摺疊
+      faceBack.style.transform = `translateY(-90px) rotateX(${angle}deg)`;
+      // 左面：繞左緣向左摺疊
+      faceLeft.style.transform = `translateX(-90px) rotateY(${-angle}deg)`;
+      // 右面：繞右緣向右摺疊
+      faceRight.style.transform = `translateX(90px) rotateY(${angle}deg)`;
+      // 上面：連接在後面上方，二次旋轉摺疊成頂面
+      faceTop.style.transform = `translateY(-180px) rotateX(${angle * 2}deg)`;
+    }
+
+    foldRange.addEventListener('input', (e) => {
+      updateFold(parseInt(e.target.value));
+    });
+
+    // 支援滑鼠拖曳旋轉 3D 視角
+    const scene3D = document.getElementById('scene3D');
+    const cubeMesh = document.getElementById('cubeMesh');
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let rotX = -25, rotY = 35;
+
+    scene3D.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      rotY += dx * 0.5;
+      rotX -= dy * 0.5;
+      cubeMesh.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    window.addEventListener('pointerup', () => { isDragging = false; });
+
+    // 初始化 100% 立體
+    updateFold(100);
+  </script>
+</body>
+</html>
