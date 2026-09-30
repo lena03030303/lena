@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>奇幻音樂探險島 - 國小六年級樂器互動教室</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #4895ef;
+      --secondary: #f72585;
+      --accent: #4cc9f0;
+      --gold: #ffb703;
+      --success: #06d6a0;
+      --wood: #a0522d;
+      --dark-wood: #5c2c16;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 8px;
+      --shadow-glow: 0 0 25px rgba(72, 149, 239, 0.35);
+      --font-family: 'PingFang TC', 'Microsoft JhengHei', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      color: var(--text);
+      font-family: var(--font-family);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 20px 40px;
+    }
+
+    /* 背景漂浮音樂符號動畫 */
+    .bg-notes-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 頂部導航與標題 */
+    header {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      font-size: 2.2rem;
+      animation: floatIcon 3s ease-in-out infinite alternate;
+      display: inline-block;
+    }
+
+    @keyframes floatIcon {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-6px) rotate(8deg); }
+    }
+
+    .brand-title h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #4cc9f0, #f72585, #ffb703);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title span.badge {
+      background: rgba(76, 201, 240, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
+    .brand-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .header-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .header-btn.active {
+      background: linear-gradient(135deg, var(--secondary), #b5179e);
+      border-color: transparent;
+      box-shadow: 0 0 15px rgba(247, 37, 133, 0.5);
+    }
+
+    /* 頂部聲波可視化窗 */
+    .visualizer-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1100px;
+      height: 90px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #visualizerCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .visualizer-overlay {
+      position: absolute;
+      top: 10px;
+      left: 16px;
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+      font-weight: 600;
+      text-transform: uppercase;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.4; }
+    }
+
+    .current-note-display {
+      position: absolute;
+      right: 20px;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 0 15px rgba(255, 183, 3, 0.6);
+      transition: transform 0.1s ease;
+    }
+
+    /* 樂器切換標籤頁 (Tabs) */
+    .instrument-nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 1100px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 150px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tab-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: transparent;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn .tab-icon {
+      font-size: 1.8rem;
+      transition: transform 0.3s ease;
+    }
+
+    .tab-btn .tab-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .tab-btn .tab-desc {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-3px);
+    }
+
+    .tab-btn:hover .tab-icon {
+      transform: scale(1.15);
+    }
+
+    .tab-btn.active {
+      background: rgba(72, 149, 239, 0.16);
+      border-color: var(--accent);
+      box-shadow: 0 8px 25px rgba(76, 201, 240, 0.25);
+    }
+
+    .tab-btn.active::before {
+      background: linear-gradient(90deg, var(--secondary), var(--accent));
+    }
+
+    .tab-btn.active .tab-name {
+      color: var(--accent);
+    }
+
+    /* 主舞台區域 */
+    main.stage-area {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1100px;
+      min-height: 480px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .instrument-panel {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .instrument-panel.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .panel-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 0 10px;
+    }
+
+    .panel-info h2 {
+      font-size: 1.4rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .panel-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .control-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* ========================================================
+       1. 鋼琴 (Piano) 樣式
+       ======================================================== */
+    .piano-wrapper {
+      position: relative;
+      padding: 30px 40px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1);
+      border: 3px solid #334155;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .piano-brand {
+      color: #94a3b8;
+      font-size: 0.8rem;
+      letter-spacing: 4px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .piano-keyboard {
+      position: relative;
+      display: flex;
+      height: 250px;
+      background: #000;
+      padding: 4px 6px 14px 6px;
+      border-radius: 10px;
+      box-shadow: inset 0 6px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .key {
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.08s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    .white-key {
+      width: 58px;
+      height: 230px;
+      background: linear-gradient(180deg, #fdfdfd 0%, #e2e8f0 85%, #cbd5e1 100%);
+      border: 1px solid #94a3b8;
+      border-radius: 0 0 8px 8px;
+      z-index: 1;
+      margin: 0 2px;
+      box-shadow: 0 6px 4px rgba(0,0,0,0.35), inset 0 -4px 6px rgba(0,0,0,0.15);
+    }
+
+    .white-key:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 85%, #e2e8f0 100%);
+    }
+
+    .white-key.active, .white-key:active {
+      background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 80%, #7dd3fc 100%);
+      transform: translateY(4px);
+      box-shadow: 0 2px 2px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(56, 189, 248, 0.6);
+    }
+
+    .white-key.guide-hint {
+      animation: keyGuide 0.8s infinite alternate;
+    }
+
+    @keyframes keyGuide {
+      from { box-shadow: 0 0 10px #4cc9f0, inset 0 0 10px #4cc9f0; }
+      to { box-shadow: 0 0 25px #f72585, inset 0 0 15px #f72585; }
+    }
+
+    .black-key {
+      width: 36px;
+      height: 145px;
+      background: linear-gradient(180deg, #334155 0%, #0f172a 60%, #020617 100%);
+      border: 1px solid #1e293b;
+      border-radius: 0 0 5px 5px;
+      z-index: 2;
+      margin-left: -19px;
+      margin-right: -19px;
+      box-shadow: 0 5px 8px rgba(0,0,0,0.8), inset 0 -2px 3px rgba(255,255,255,0.2);
+    }
+
+    .black-key.active, .black-key:active {
+      background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+      transform: translateY(3px);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 12px rgba(99, 102, 241, 0.8);
+    }
+
+    .key-note {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #334155;
+      pointer-events: none;
+    }
+
+    .key-solfege {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 2px;
+      pointer-events: none;
+    }
+
+    .key-shortcut {
+      position: absolute;
+      top: 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+      background: rgba(0, 0, 0, 0.06);
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      pointer-events: none;
+    }
+
+    .black-key .key-note, .black-key .key-solfege {
+      color: #cbd5e1;
+    }
+
+    .black-key .key-shortcut {
+      top: 8px;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* ========================================================
+       2. 奧福木琴 (Xylophone) 樣式
+       ======================================================== */
+    .xylophone-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .xylophone-frame {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 14px;
+      padding: 30px 40px;
+      background: linear-gradient(180deg, #3d1b06 0%, #200e04 100%);
+      border-radius: 18px;
+      border: 3px solid #5a2c10;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), inset 0 2px 6px rgba(255, 255, 255, 0.1);
+    }
+
+    .xylo-stand-bar {
+      position: absolute;
+      width: 94%;
+      height: 14px;
+      background: #190a02;
+      border-radius: 7px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+
+    .xylo-stand-top { top: 75px; }
+    .xylo-stand-bot { bottom: 75px; }
+
+    .xylo-bar {
+      position: relative;
+      width: 62px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), inset 0 2px 5px rgba(255, 255, 255, 0.35);
+      transition: transform 0.08s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 2;
+    }
+
+    .xylo-bar::before, .xylo-bar::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #111;
+      border-radius: 50%;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.4);
+    }
+
+    .xylo-bar:hover {
+      filter: brightness(1.12);
+      transform: translateY(-3px);
+    }
+
+    .xylo-bar.hit {
+      animation: xyloBounce 0.25s ease-out;
+    }
+
+    @keyframes xyloBounce {
+      0% { transform: translateY(6px) scale(0.97); filter: brightness(1.4); }
+      50% { transform: translateY(-4px) scale(1.02); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .xylo-label {
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .xylo-solfege {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 700;
+    }
+
+    .xylo-c { height: 260px; background: linear-gradient(180deg, #ff4d6d, #c9184a); }
+    .xylo-d { height: 245px; background: linear-gradient(180deg, #ff9e00, #e85d04); }
+    .xylo-e { height: 230px; background: linear-gradient(180deg, #ffdd00, #ffb703); }
+    .xylo-f { height: 215px; background: linear-gradient(180deg, #70e000, #38b000); }
+    .xylo-g { height: 200px; background: linear-gradient(180deg, #00b4d8, #0077b6); }
+    .xylo-a { height: 185px; background: linear-gradient(180deg, #7209b7, #560bad); }
+    .xylo-b { height: 170px; background: linear-gradient(180deg, #b5179e, #7209b7); }
+    .xylo-c2 { height: 155px; background: linear-gradient(180deg, #f72585, #d90429); }
+
+    /* ========================================================
+       3. 爵士鼓 (Drum Kit) 樣式
+       ======================================================== */
+    .drum-kit-stage {
+      position: relative;
+      width: 100%;
+      max-width: 780px;
+      height: 380px;
+      background: radial-gradient(circle at center, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.95) 75%);
+      border-radius: 24px;
+      border: 2px solid var(--card-border);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .drum-piece {
+      position: absolute;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.08s ease, filter 0.08s ease;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    .drum-piece:hover {
+      filter: brightness(1.15);
+    }
+
+    .drum-piece.hit {
+      animation: drumStrike 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes drumStrike {
+      0% { transform: scale(0.92); filter: brightness(1.5); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    /* 鈸震動 */
+    .cymbal.hit {
+      animation: cymbalWobble 0.4s ease-out;
+    }
+
+    @keyframes cymbalWobble {
+      0% { transform: rotate(-8deg) scale(0.96); filter: brightness(1.6); }
+      30% { transform: rotate(6deg) scale(1.02); }
+      60% { transform: rotate(-3deg); }
+      100% { transform: rotate(0) scale(1); }
+    }
+
+    /* 大鼓 (Bass Drum) */
+    .bass-drum {
+      width: 170px;
+      height: 170px;
+      bottom: 25px;
+      background: radial-gradient(circle, #f8fafc 40%, #cbd5e1 75%, #475569 95%);
+      border: 8px solid #94a3b8;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.8), inset 0 0 18px rgba(0,0,0,0.4);
+      z-index: 3;
+    }
+
+    /* 小鼓 (Snare) */
+    .snare-drum {
+      width: 120px;
+      height: 120px;
+      left: 170px;
+      bottom: 90px;
+      background: radial-gradient(circle, #ffffff 45%, #e2e8f0 70%, #94a3b8 95%);
+      border: 6px solid #e2e8f0;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+      z-index: 4;
+    }
+
+    /* Hi-Hat (鈸) */
+    .hihat-cymbal {
+      width: 110px;
+      height: 110px;
+      left: 60px;
+      bottom: 160px;
+      background: radial-gradient(circle, #ffd166 20%, #e09f3e 70%, #9e6400 95%);
+      border: 3px solid #ffb703;
+      box-shadow: 0 8px 25px rgba(255, 183, 3, 0.35);
+      z-index: 2;
+    }
+
+    /* Crash Cymbal */
+    .crash-cymbal {
+      width: 130px;
+      height: 130px;
+      right: 70px;
+      bottom: 180px;
+      background: radial-gradient(circle, #ffe39f 20%, #f4a261 70%, #b05700 95%);
+      border: 4px solid #f4a261;
+      box-shadow: 0 8px 30px rgba(244, 162, 97, 0.4);
+      z-index: 2;
+    }
+
+    /* 通通鼓 High Tom */
+    .tom-high {
+      width: 105px;
+      height: 105px;
+      left: 270px;
+      top: 50px;
+      background: radial-gradient(circle, #e2e8f0 45%, #94a3b8 80%, #334155 95%);
+      border: 6px solid #64748b;
+      z-index: 3;
+    }
+
+    /* 通通鼓 Low Tom */
+    .tom-low {
+      width: 115px;
+      height: 115px;
+      right: 230px;
+      top: 60px;
+      background: radial-gradient(circle, #e2e8f0 45%, #94a3b8 80%, #334155 95%);
+      border: 6px solid #64748b;
+      z-index: 3;
+    }
+
+    /* 落地鼓 Floor Tom */
+    .floor-tom {
+      width: 135px;
+      height: 135px;
+      right: 140px;
+      bottom: 60px;
+      background: radial-gradient(circle, #ffffff 40%, #cbd5e1 75%, #475569 95%);
+      border: 7px solid #64748b;
+      z-index: 4;
+    }
+
+    .drum-name {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .drum-shortcut {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #475569;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 2px 7px;
+      border-radius: 10px;
+      margin-top: 4px;
+    }
+
+    /* ========================================================
+       4. 高音直笛 (Soprano Recorder) 樣式
+       ======================================================== */
+    .recorder-stage {
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      width: 100%;
+      max-width: 860px;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    /* 直笛笛身 (仿真高質感木紋或象牙白) */
+    .recorder-body {
+      position: relative;
+      width: 80px;
+      height: 420px;
+      background: linear-gradient(90deg, #ede0d4 0%, #fdfbf7 40%, #d6c7b2 85%, #b09f85 100%);
+      border-radius: 20px 20px 24px 24px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 2px 6px rgba(255, 255, 255, 0.8), inset 0 -4px 8px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+      border: 2px solid #c7b198;
+    }
+
+    .recorder-mouthpiece {
+      position: absolute;
+      top: -30px;
+      width: 48px;
+      height: 34px;
+      background: linear-gradient(90deg, #d6c7b2, #f5ebe0, #b09f85);
+      border-radius: 12px 12px 4px 4px;
+      border-top: 5px solid #4a3b32;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .recorder-windway {
+      width: 22px;
+      height: 12px;
+      background: #2a1e17;
+      border-radius: 3px;
+      margin-top: 15px;
+      margin-bottom: 25px;
+      box-shadow: inset 0 2px 4px #000;
+    }
+
+    /* 直笛孔洞 */
+    .recorder-holes {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .recorder-hole {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #3b281c;
+      box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .recorder-hole.closed {
+      background: #e63946;
+      box-shadow: 0 0 10px #e63946, inset 0 1px 3px rgba(255,255,255,0.6);
+      transform: scale(1.1);
+    }
+
+    .recorder-hole.closed::after {
+      content: '●';
+      color: #fff;
+      font-size: 13px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* 直笛快速音階選擇器 */
+    .recorder-notes-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .recorder-guide-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .recorder-note-btns {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .rec-note-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .rec-note-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .rec-note-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      box-shadow: 0 0 18px rgba(76, 201, 240, 0.5);
+      border-color: #fff;
+    }
+
+    .rec-note-btn strong {
+      font-size: 1.2rem;
+    }
+
+    .rec-note-btn span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .fingering-tips {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--accent);
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    /* ========================================================
+       底部控制台：練習曲導引與錄音 (Song Follower & Tools)
+       ======================================================== */
+    .bottom-toolbar {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1100px;
+      margin-top: 20px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .practice-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .practice-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .song-select {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .song-select option {
+      background: #1e293b;
+      color: #fff;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .action-btn.play-song-btn {
+      background: linear-gradient(135deg, var(--success), #059669);
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(6, 214, 160, 0.3);
+    }
+
+    .action-btn.record-btn.recording {
+      background: #ef4444;
+      animation: recordBlink 1s infinite alternate;
+    }
+
+    @keyframes recordBlink {
+      from { box-shadow: 0 0 15px #ef4444; }
+      to { box-shadow: 0 0 25px #b91c1c; }
+    }
+
+    .song-progress-sheet {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 12px 18px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .note-stream {
+      display: flex;
+      gap: 10px;
+      overflow-x: hidden;
+      white-space: nowrap;
+      flex: 1;
+      padding: 4px 0;
+    }
+
+    .stream-note {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #94a3b8;
+      transition: all 0.2s ease;
+    }
+
+    .stream-note.current {
+      background: var(--gold);
+      color: #0f172a;
+      transform: scale(1.18);
+      box-shadow: 0 0 15px var(--gold);
+    }
+
+    .stream-note.passed {
+      color: #475569;
+      opacity: 0.5;
+    }
+
+    /* 彈出百科視窗 (Modal) */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      max-width: 720px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 30px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .family-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .family-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .family-card h3 {
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .family-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* 響應式微調 */
+    @media (max-width: 860px) {
+      .white-key { width: 44px; height: 190px; }
+      .black-key { width: 28px; height: 120px; margin-left: -14px; margin-right: -14px; }
+      .xylo-bar { width: 46px; }
+      .drum-kit-stage { height: 320px; }
+      .bass-drum { width: 130px; height: 130px; }
+      .snare-drum { width: 95px; height: 95px; left: 100px; }
+      .recorder-stage { flex-direction: column; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 音樂波紋與粒子動畫 Canvas -->
+  <canvas class="bg-notes-canvas" id="notesBgCanvas"></canvas>
+
+  <!-- 頂部 Header -->
+  <header>
+    <div class="brand-title">
+      <span class="brand-icon">🎵</span>
+      <div>
+        <h1>奇幻音樂探險島 <span class="badge">國小六年級音樂科</span></h1>
+        <div class="brand-subtitle">認識樂器家族・音階探索・動態演奏與節奏挑戰</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" id="btnKnowledge">
+        <span>📖</span> 樂器小百科
+      </button>
+      <button class="header-btn" id="btnSoundFX">
+        <span>✨</span> 夢幻空間殘響: <strong id="fxStatus">開</strong>
+      </button>
+    </div>
+  </header>
+
+  <!-- 頂部即時音波視覺化 -->
+  <div class="visualizer-container">
+    <div class="visualizer-overlay">
+      <span class="pulse-dot"></span>
+      即時音波與頻譜可視化 (Audio Visualizer)
+    </div>
+    <canvas id="visualizerCanvas"></canvas>
+    <div class="current-note-display" id="currentNoteText">--</div>
+  </div>
+
+  <!-- 樂器種類導航分頁 (Tabs) -->
+  <nav class="instrument-nav">
+    <button class="tab-btn active" data-target="piano">
+      <span class="tab-icon">🎹</span>
+      <span class="tab-name">三角鋼琴</span>
+      <span class="tab-desc">鍵盤樂器・經典音律</span>
+    </button>
+    <button class="tab-btn" data-target="xylophone">
+      <span class="tab-icon">🪵</span>
+      <span class="tab-name">奧福彩虹木琴</span>
+      <span class="tab-desc">打擊樂器・清脆木質調</span>
+    </button>
+    <button class="tab-btn" data-target="drums">
+      <span class="tab-icon">🥁</span>
+      <span class="tab-name">活力爵士鼓</span>
+      <span class="tab-desc">節奏靈魂・震撼重低音</span>
+    </button>
+    <button class="tab-btn" data-target="recorder">
+      <span class="tab-icon">🪈</span>
+      <span class="tab-name">六年級高音直笛</span>
+      <span class="tab-desc">管樂家族・經典指法教學</span>
+    </button>
+  </nav>
+
+  <!-- 主舞台區域 (Stage) -->
+  <main class="stage-area">
+
+    <!-- 1. 鋼琴面板 -->
+    <section class="instrument-panel active" id="piano-panel">
+      <div class="panel-header">
+        <div class="panel-info">
+          <h2>🎹 典雅三角鋼琴 (Grand Piano)</h2>
+          <p>國小六年級音域：C4 至 C5 完整八度（包含半音黑鍵），支援電腦鍵盤快速敲擊！</p>
+        </div>
+        <div class="panel-controls">
+          <div class="control-switch">
+            <span>鍵盤提示</span>
+            <input type="checkbox" id="toggleKeyboardHints" checked>
+          </div>
+        </div>
+      </div>
+
+      <div class="piano-wrapper">
+        <div class="piano-brand">CONCERT GRAND ★ 6TH GRADE SPECIAL</div>
+        <div class="piano-keyboard" id="pianoKeyboard">
+          <!-- 鋼琴琴鍵由 JS 渲染生成以保證音準與事件綁定 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 奧福木琴面板 -->
+    <section class="instrument-panel" id="xylophone-panel">
+      <div class="panel-header">
+        <div class="panel-info">
+          <h2>🪵 奧福高音木琴 (Orff Xylophone)</h2>
+          <p>音條越長音越低、音條越短音越高！感受木質敲擊震動的清脆共鳴。</p>
+        </div>
+      </div>
+
+      <div class="xylophone-stage">
+        <div class="xylophone-frame" id="xyloFrame">
+          <div class="xylo-stand-bar xylo-stand-top"></div>
+          <div class="xylo-stand-bar xylo-stand-bot"></div>
+          
+          <div class="xylo-bar xylo-c" data-note="C4" data-solfege="Do" data-key="1">
+            <span class="xylo-label">C</span>
+            <span class="xylo-solfege">1 Do</span>
+          </div>
+          <div class="xylo-bar xylo-d" data-note="D4" data-solfege="Re" data-key="2">
+            <span class="xylo-label">D</span>
+            <span class="xylo-solfege">2 Re</span>
+          </div>
+          <div class="xylo-bar xylo-e" data-note="E4" data-solfege="Mi" data-key="3">
+            <span class="xylo-label">E</span>
+            <span class="xylo-solfege">3 Mi</span>
+          </div>
+          <div class="xylo-bar xylo-f" data-note="F4" data-solfege="Fa" data-key="4">
+            <span class="xylo-label">F</span>
+            <span class="xylo-solfege">4 Fa</span>
+          </div>
+          <div class="xylo-bar xylo-g" data-note="G4" data-solfege="Sol" data-key="5">
+            <span class="xylo-label">G</span>
+            <span class="xylo-solfege">5 Sol</span>
+          </div>
+          <div class="xylo-bar xylo-a" data-note="A4" data-solfege="La" data-key="6">
+            <span class="xylo-label">A</span>
+            <span class="xylo-solfege">6 La</span>
+          </div>
+          <div class="xylo-bar xylo-b" data-note="B4" data-solfege="Si" data-key="7">
+            <span class="xylo-label">B</span>
+            <span class="xylo-solfege">7 Si</span>
+          </div>
+          <div class="xylo-bar xylo-c2" data-note="C5" data-solfege="高Do" data-key="8">
+            <span class="xylo-label">C'</span>
+            <span class="xylo-solfege">i 高Do</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 爵士鼓面板 -->
+    <section class="instrument-panel" id="drums-panel">
+      <div class="panel-header">
+        <div class="panel-info">
+          <h2>🥁 活力爵士鼓 (Drum Kit)</h2>
+          <p>節奏的基石！結合大鼓 (Bass)、小鼓 (Snare) 與搖晃金屬銅鈸 (Cymbals)。</p>
+        </div>
+      </div>
+
+      <div class="drum-kit-stage" id="drumKit">
+        <!-- Hi-Hat 鈸 -->
+        <div class="drum-piece hihat-cymbal cymbal" data-drum="hihat" data-key="T">
+          <span class="drum-name">Hi-Hat</span>
+          <span class="drum-shortcut">[ T ] 鍵</span>
+        </div>
+        <!-- Crash 碎音鈸 -->
+        <div class="drum-piece crash-cymbal cymbal" data-drum="crash" data-key="Y">
+          <span class="drum-name">Crash</span>
+          <span class="drum-shortcut">[ Y ] 鍵</span>
+        </div>
+        <!-- High Tom -->
+        <div class="drum-piece tom-high" data-drum="tomHigh" data-key="G">
+          <span class="drum-name">Tom 1</span>
+          <span class="drum-shortcut">[ G ] 鍵</span>
+        </div>
+        <!-- Low Tom -->
+        <div class="drum-piece tom-low" data-drum="tomLow" data-key="H">
+          <span class="drum-name">Tom 2</span>
+          <span class="drum-shortcut">[ H ] 鍵</span>
+        </div>
+        <!-- Snare 小鼓 -->
+        <div class="drum-piece snare-drum" data-drum="snare" data-key="F">
+          <span class="drum-name">小鼓 Snare</span>
+          <span class="drum-shortcut">[ F ] 鍵</span>
+        </div>
+        <!-- Bass Drum 大鼓 -->
+        <div class="drum-piece bass-drum" data-drum="bass" data-key="Space">
+          <span class="drum-name">大鼓 Bass</span>
+          <span class="drum-shortcut">[ 空白鍵 ]</span>
+        </div>
+        <!-- Floor Tom 落地鼓 -->
+        <div class="drum-piece floor-tom" data-drum="floorTom" data-key="J">
+          <span class="drum-name">Floor Tom</span>
+          <span class="drum-shortcut">[ J ] 鍵</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 高音直笛面板 -->
+    <section class="instrument-panel" id="recorder-panel">
+      <div class="panel-header">
+        <div class="panel-info">
+          <h2>🪈 六年級高音直笛 (Soprano Recorder)</h2>
+          <p>國小必備樂器！點擊音階按鈕即時預覽對應手指孔位，或直接點按笛孔感受發聲！</p>
+        </div>
+      </div>
+
+      <div class="recorder-stage">
+        <!-- 直笛本體 -->
+        <div class="recorder-body">
+          <div class="recorder-mouthpiece"></div>
+          <div class="recorder-windway"></div>
+          <div class="recorder-holes" id="recorderHoles">
+            <!-- 笛孔 0: 背後左手拇指孔 (以頂部第一個孔示意) -->
+            <div class="recorder-hole closed" data-hole="0" title="左手大拇指孔 (背面)"></div>
+            <!-- 正面 1~7 孔 -->
+            <div class="recorder-hole closed" data-hole="1" title="左手食指 (第1孔)"></div>
+            <div class="recorder-hole closed" data-hole="2" title="左手中指 (第2孔)"></div>
+            <div class="recorder-hole closed" data-hole="3" title="左手無名指 (第3孔)"></div>
+            <div class="recorder-hole closed" data-hole="4" title="右手食指 (第4孔)"></div>
+            <div class="recorder-hole closed" data-hole="5" title="右手中指 (第5孔)"></div>
+            <div class="recorder-hole closed" data-hole="6" title="右手無名指 (第6孔)"></div>
+            <div class="recorder-hole closed" data-hole="7" title="右手小指 (第7孔)"></div>
+          </div>
+        </div>
+
+        <!-- 音階速查與指法切換 -->
+        <div class="recorder-notes-menu">
+          <div class="recorder-guide-title">🎼 國小音樂課標準直笛指法練習：</div>
+          <div class="recorder-note-btns">
+            <button class="rec-note-btn active" data-note="C4" data-fingering="11111111">
+              <strong>Do (低)</strong>
+              <span>全部閉孔 (C4)</span>
+            </button>
+            <button class="rec-note-btn" data-note="D4" data-fingering="11111110">
+              <strong>Re</strong>
+              <span>開第7孔 (D4)</span>
+            </button>
+            <button class="rec-note-btn" data-note="E4" data-fingering="11111100">
+              <strong>Mi</strong>
+              <span>開6,7孔 (E4)</span>
+            </button>
+            <button class="rec-note-btn" data-note="F4" data-fingering="11111011">
+              <strong>Fa</strong>
+              <span>德式指法 (F4)</span>
+            </button>
+            <button class="rec-note-btn" data-note="G4" data-fingering="11110000">
+              <strong>Sol</strong>
+              <span>左手按滿 (G4)</span>
+            </button>
+            <button class="rec-note-btn" data-note="A4" data-fingering="11100000">
+              <strong>La</strong>
+              <span>左手兩指 (A4)</span>
+            </button>
+            <button class="rec-note-btn" data-note="B4" data-fingering="11000000">
+              <strong>Si</strong>
+              <span>左手一指 (B4)</span>
+            </button>
+            <button class="rec-note-btn" data-note="C5" data-fingering="10100000">
+              <strong>Do (高)</strong>
+              <span>中指單按 (C5)</span>
+            </button>
+          </div>
+
+          <div class="fingering-tips">
+            💡 <strong>六年級直笛秘笈：</strong>
+            <br>1. 吹奏低音 Do、Re 時，呼吸要「柔和、溫暖」，氣流太急會造成刺耳超吹。
+            <br>2. 高音 Do (C5) 鬆開左手食指，只按大拇指和中指，聲音自然清亮乾淨！
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部多功能工具列 (挑戰曲目、跟彈引導、錄音回放) -->
+  <footer class="bottom-toolbar">
+    <div class="practice-box">
+      <span class="practice-label">🎯 六年級名曲跟彈挑戰：</span>
+      <select class="song-select" id="songSelect">
+        <option value="joy">歡樂頌 (貝多芬第九交響曲)</option>
+        <option value="star">小星星 (莫札特變奏曲主題)</option>
+        <option value="spring">望春風 (台灣經典民謠)</option>
+        <option value="greensleeves">綠袖子 (文藝復興名曲)</option>
+      </select>
+      <button class="action-btn play-song-btn" id="btnPlayDemo">
+        <span>▶</span> 示範演奏
+      </button>
+      <button class="action-btn" id="btnFollowGuide">
+        <span>🌟</span> 開啟按鍵引導
+      </button>
+    </div>
+
+    <div class="practice-box">
+      <button class="action-btn record-btn" id="btnRecord">
+        <span>⏺</span> 開始錄音
+      </button>
+      <button class="action-btn" id="btnPlayRecord" disabled>
+        <span>🔁</span> 回放創作
+      </button>
+    </div>
+
+    <!-- 樂譜即時串流顯示條 -->
+    <div class="song-progress-sheet">
+      <span style="font-size: 0.85rem; color: var(--gold); font-weight: bold;">即時簡譜：</span>
+      <div class="note-stream" id="noteStream">
+        <span class="stream-note current">準備就緒</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 樂器小百科彈出視窗 (Modal) -->
+  <div class="modal-backdrop" id="knowledgeModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="btnCloseModal">✕</button>
+      <h2 style="color: var(--gold); font-size: 1.5rem; margin-bottom: 8px;">📚 國小六年級：音樂大師百科全書</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">一起探索交響樂團四大樂器家族與聲學發聲的奧秘！</p>
+      
+      <div class="family-grid">
+        <div class="family-card">
+          <h3>🎹 鍵盤樂器家族 (Keyboard)</h3>
+          <p><strong>代表樂器：</strong> 三角鋼琴、大鍵琴、風琴、電子琴。</p>
+          <p><strong>發聲秘密：</strong> 鋼琴琴鍵敲下時，內部木槌會敲打鋼弦發出震動。它既有弦樂的共鳴，又有打擊樂的擊弦動作，因此音域極為寬廣，被譽為「樂器之王」！</p>
+        </div>
+
+        <div class="family-card">
+          <h3>🪵 打擊樂器家族 (Percussion)</h3>
+          <p><strong>代表樂器：</strong> 奧福木琴、鐵琴、定音鼓、爵士鼓、鈴鼓。</p>
+          <p><strong>發聲秘密：</strong> 透過拍打、敲擊或搖動產生共鳴。木琴音條長度與發聲頻率成反比：音條越長，震動越慢，音調越低；音條越短，震動越快，音調越高！</p>
+        </div>
+
+        <div class="family-card">
+          <h3>🪈 管樂器家族 (Wind Instruments)</h3>
+          <p><strong>代表樂器：</strong> 高音直笛、長笛、單簧管、小號、長號。</p>
+          <p><strong>發聲秘密：</strong> 吹入空氣使管內「空氣柱」震動發聲。當手指把所有笛孔按住時，空氣柱最長，音最低 (Do)；打開孔洞越多，空氣柱越短，音就越高！</p>
+        </div>
+
+        <div class="family-card">
+          <h3>🎻 弦樂器家族 (Strings)</h3>
+          <p><strong>代表樂器：</strong> 小提琴、中提琴、大提琴、低音提琴、吉他。</p>
+          <p><strong>發聲秘密：</strong> 使用琴弓摩擦琴弦或用手指撥彈。琴弦越細、繃得越緊、弦長越短，震動頻率就越高，發出的聲音就越尖銳清脆。</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; padding: 16px; background: rgba(76, 201, 240, 0.1); border-radius: 12px; border: 1px dashed var(--accent);">
+        <h4 style="color: var(--accent); margin-bottom: 6px;">🎯 六年級素養小問題：</h4>
+        <p style="font-size: 0.88rem; color: #cbd5e1;">為什麼直笛按滿所有孔吹出來是最低的音 (Do)？<br><strong>解答：</strong> 因為當所有音孔都封閉時，空氣只能從最底部的出氣口排出，管內的「共鳴空氣柱」最長，所以震動頻率最低！</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       Web Audio API 合成引擎 (無需載入外部檔案，純演算法合成高品質真實樂器聲)
+       ========================================================================= */
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    // 效果器節點：主增益、立體殘響與低通濾波
+    let masterGain = null;
+    let convolverNode = null;
+    let reverbGain = null;
+    let isReverbEnabled = true;
+
+    // 音名對應頻率映射表 (赫茲 Hz)
+    const NOTE_FREQS = {
+      'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'F3': 174.61, 'G3': 196.00, 'A3': 220.00, 'B3': 246.94,
+      'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23,
+      'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+      'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25, 'F5': 698.46,
+      'G5': 783.99, 'A5': 880.00, 'B5': 987.77, 'C6': 1046.50
+    };
+
+    // 分析儀節點 (用於即時頻譜與聲波可視化)
+    let analyserNode = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new AudioContextClass();
+
+      // 主輸出音量控制
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.85, audioCtx.currentTime);
+
+      // 分析儀節點 (Analyser)
+      analyserNode = audioCtx.createAnalyser();
+      analyserNode.fftSize = 256;
+
+      // 建立演算法空間殘響 (Synthetic Reverb Impulse)
+      convolverNode = audioCtx.createConvolver();
+      reverbGain = audioCtx.createGain();
+      reverbGain.gain.value = 0.35;
+
+      createImpulseResponse(2.2, 2.0).then(buffer => {
+        convolverNode.buffer = buffer;
+      });
+
+      // 連接音訊路由
+      masterGain.connect(analyserNode);
+      analyserNode.connect(audioCtx.destination);
+
+      // 殘響旁路連接
+      convolverNode.connect(reverbGain);
+      reverbGain.connect(masterGain);
+    }
+
+    // 動態產生高質感空間殘響脈衝響應 (Impulse Response)
+    async function createImpulseResponse(duration, decay) {
+      const sampleRate = audioCtx.sampleRate;
+      const length = sampleRate * duration;
+      const impulse = audioCtx.createBuffer(2, length, sampleRate);
+      const left = impulse.getChannelData(0);
+      const right = impulse.getChannelData(1);
+
+      for (let i = 0; i < length; i++) {
+        const n = length - i;
+        const factor = Math.pow(n / length, decay);
+        left[i] = (Math.random() * 2 - 1) * factor;
+        right[i] = (Math.random() * 2 - 1) * factor;
+      }
+      return impulse;
+    }
+
+    /* ----------------------------------------------------
+       樂器 1：三角鋼琴 (Piano Synthesizer)
+       採用多振盪器基頻 + 八度泛音 + 自然衰減包絡線 (ADSR)
+       ---------------------------------------------------- */
+    function playPianoNote(freq, noteName = '') {
+      initAudio();
+      const now = audioCtx.currentTime;
+
+      // 主琴音增益包絡
+      const noteGain = audioCtx.createGain();
+      noteGain.gain.setValueAtTime(0.001, now);
+      noteGain.gain.linearRampToValueAtTime(0.7, now + 0.015);
+      noteGain.gain.exponentialRampToValueAtTime(0.3, now + 0.35);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+
+      // 鋼琴雙諧波震盪器
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const osc3 = audioCtx.createOscillator();
+
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(freq, now);
+
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(freq * 2, now); // 第2泛音
+      const gain2 = audioCtx.createGain();
+      gain2.gain.value = 0.35;
+
+      osc3.type = 'sine';
+      osc3.frequency.setValueAtTime(freq * 3, now); // 第3泛音
+      const gain3 = audioCtx.createGain();
+      gain3.gain.value = 0.15;
+
+      // 溫暖低通濾波模擬木質共鳴箱
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(freq * 6, now);
+      filter.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 1.2);
+
+      osc1.connect(noteGain);
+      osc2.connect(gain2); gain2.connect(noteGain);
+      osc3.connect(gain3); gain3.connect(noteGain);
+
+      noteGain.connect(filter);
+      filter.connect(masterGain);
+
+      if (isReverbEnabled && convolverNode) {
+        filter.connect(convolverNode);
+      }
+
+      osc1.start(now);
+      osc2.start(now);
+      osc3.start(now);
+
+      osc1.stop(now + 2.0);
+      osc2.stop(now + 2.0);
+      osc3.stop(now + 2.0);
+
+      onSoundTriggered(noteName || '鋼琴');
+    }
+
+    /* ----------------------------------------------------
+       樂器 2：奧福木琴 (Xylophone Synthesizer)
+       短促打擊瞬態 (Transient) + 清澈正弦敲擊聲
+       ---------------------------------------------------- */
+    function playXylophoneNote(freq, noteName = '') {
+      initAudio();
+      const now = audioCtx.currentTime;
+
+      // 敲擊包絡
+      const xyloGain = audioCtx.createGain();
+      xyloGain.gain.setValueAtTime(0.9, now);
+      xyloGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      // 木頭高頻敲擊感
+      const clickOsc = audioCtx.createOscillator();
+      const clickGain = audioCtx.createGain();
+      clickOsc.type = 'triangle';
+      clickOsc.frequency.setValueAtTime(freq * 3.5, now);
+      clickGain.gain.setValueAtTime(0.4, now);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+
+      clickOsc.connect(clickGain);
+      clickGain.connect(masterGain);
+
+      osc.connect(xyloGain);
+      xyloGain.connect(masterGain);
+
+      if (isReverbEnabled && convolverNode) {
+        xyloGain.connect(convolverNode);
+      }
+
+      osc.start(now);
+      clickOsc.start(now);
+      osc.stop(now + 0.7);
+      clickOsc.stop(now + 0.06);
+
+      onSoundTriggered(noteName || '木琴');
+    }
+
+    /* ----------------------------------------------------
+       樂器 3：高音直笛 (Soprano Recorder)
+       純淨氣流正弦波 + 微顫音 (Vibrato) + 輕柔氣流雜音
+       ---------------------------------------------------- */
+    function playRecorderNote(freq, noteName = '') {
+      initAudio();
+      const now = audioCtx.currentTime;
+
+      // 呼吸起奏包絡 (起音稍慢更擬真)
+      const breathGain = audioCtx.createGain();
+      breathGain.gain.setValueAtTime(0.001, now);
+      breathGain.gain.linearRampToValueAtTime(0.65, now + 0.08);
+      breathGain.gain.setValueAtTime(0.65, now + 0.5);
+      breathGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
+
+      // 主音振盪器
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      // 直笛專屬輕微氣流顫音 (Vibrato LFO)
+      const lfo = audioCtx.createOscillator();
+      const lfoGain = audioCtx.createGain();
+      lfo.frequency.setValueAtTime(5.5, now); // 每秒 5.5 次顫音
+      lfoGain.gain.setValueAtTime(2.5, now);
+      lfo.connect(osc.frequency);
+      lfo.start(now);
+      lfo.stop(now + 1.0);
+
+      // 輕微高音倍頻 (模擬管樂泛音)
+      const overtone = audioCtx.createOscillator();
+      const overtoneGain = audioCtx.createGain();
+      overtone.type = 'sine';
+      overtone.frequency.setValueAtTime(freq * 2, now);
+      overtoneGain.gain.setValueAtTime(0.12, now);
+      overtone.connect(overtoneGain);
+      overtoneGain.connect(breathGain);
+
+      osc.connect(breathGain);
+      breathGain.connect(masterGain);
+
+      if (isReverbEnabled && convolverNode) {
+        breathGain.connect(convolverNode);
+      }
+
+      osc.start(now);
+      overtone.start(now);
+      osc.stop(now + 1.0);
+      overtone.stop(now + 1.0);
+
+      onSoundTriggered(noteName || '直笛');
+    }
+
+    /* ----------------------------------------------------
+       樂器 4：爵士鼓打擊合成器 (Drum Kit Synthesizer)
+       包含大鼓 (Bass)、小鼓 (Snare)、銅鈸 (Cymbals)、通通鼓 (Toms)
+       ---------------------------------------------------- */
+    function playDrum(type) {
+      initAudio();
+      const now = audioCtx.currentTime;
+
+      switch (type) {
+        case 'bass': {
+          // 大鼓 (Bass Drum)：音頻快速滑落 150Hz -> 30Hz 伴隨重擊
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(35, now + 0.22);
+          gain.gain.setValueAtTime(1.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+          osc.connect(gain);
+          gain.connect(masterGain);
+          osc.start(now);
+          osc.stop(now + 0.4);
+          onSoundTriggered('大鼓 Bass');
+          break;
+        }
+
+        case 'snare': {
+          // 小鼓 (Snare Drum)：雙音調鼓身 + 白噪音響線 (Snare Wires)
+          const drumOsc = audioCtx.createOscillator();
+          const drumGain = audioCtx.createGain();
+          drumOsc.type = 'triangle';
+          drumOsc.frequency.setValueAtTime(220, now);
+          drumOsc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+          drumGain.gain.setValueAtTime(0.7, now);
+          drumGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          drumOsc.connect(drumGain);
+          drumGain.connect(masterGain);
+          drumOsc.start(now);
+          drumOsc.stop(now + 0.2);
+
+          // 白噪聲
+          playNoise(0.2, 1800, 0.65);
+          onSoundTriggered('小鼓 Snare');
+          break;
+        }
+
+        case 'hihat': {
+          // Hi-Hat：短促金屬高頻噪聲
+          playNoise(0.06, 7500, 0.5);
+          onSoundTriggered('Hi-Hat');
+          break;
+        }
+
+        case 'crash': {
+          // 碎音鈸 Crash：長延音金屬爆發
+          playNoise(0.9, 5500, 0.85);
+          onSoundTriggered('Crash 鈸');
+          break;
+        }
+
+        case 'tomHigh': {
+          playTom(210, 0.28);
+          onSoundTriggered('Tom 1');
+          break;
+        }
+
+        case 'tomLow': {
+          playTom(150, 0.32);
+          onSoundTriggered('Tom 2');
+          break;
+        }
+
+        case 'floorTom': {
+          playTom(95, 0.42);
+          onSoundTriggered('Floor Tom');
+          break;
+        }
+      }
+    }
+
+    // 通通鼓通用輔助函數
+    function playTom(freq, duration) {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.45, now + duration);
+      gain.gain.setValueAtTime(0.8, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(now);
+      osc.stop(now + duration);
+    }
+
+    // 白噪音生成器 (用於小鼓響片、銅鈸等金屬金屬質感)
+    function playNoise(duration, filterFreq, volume) {
+      const now = audioCtx.currentTime;
+      const bufferSize = audioCtx.sampleRate * duration;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(filterFreq, now);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      if (isReverbEnabled && convolverNode) {
+        gain.connect(convolverNode);
+      }
+
+      whiteNoise.start(now);
+      whiteNoise.stop(now + duration);
+    }
+
+    // 發聲觸發時更新可視化面板提示
+    const currentNoteText = document.getElementById('currentNoteText');
+    function onSoundTriggered(label) {
+      currentNoteText.innerText = label;
+      currentNoteText.style.transform = 'scale(1.25)';
+      setTimeout(() => {
+        currentNoteText.style.transform = 'scale(1)';
+      }, 150);
+
+      // 若處於錄音模式，記錄音符事件
+      if (isRecording) {
+        recordTrack.push({
+          time: Date.now() - recordStartTime,
+          instrument: currentInstrument,
+          label: label
+        });
+      }
+    }
+
+    /* =========================================================================
+       鋼琴琴鍵生成與鍵盤快速鍵支援
+       ========================================================================= */
+    const PIANO_KEYS_DATA = [
+      { note: 'C4', solfege: 'Do', key: 'A', black: false },
+      { note: 'C#4', solfege: '♯Do', key: 'W', black: true },
+      { note: 'D4', solfege: 'Re', key: 'S', black: false },
+      { note: 'D#4', solfege: '♯Re', key: 'E', black: true },
+      { note: 'E4', solfege: 'Mi', key: 'D', black: false },
+      { note: 'F4', solfege: 'Fa', key: 'F', black: false },
+      { note: 'F#4', solfege: '♯Fa', key: 'T', black: true },
+      { note: 'G4', solfege: 'Sol', key: 'G', black: false },
+      { note: 'G#4', solfege: '♯Sol', key: 'Y', black: true },
+      { note: 'A4', solfege: 'La', key: 'H', black: false },
+      { note: 'A#4', solfege: '♯La', key: 'U', black: true },
+      { note: 'B4', solfege: 'Si', key: 'J', black: false },
+      { note: 'C5', solfege: 'iDo', key: 'K', black: false }
+    ];
+
+    const pianoKeyboard = document.getElementById('pianoKeyboard');
+    function buildPiano() {
+      pianoKeyboard.innerHTML = '';
+      PIANO_KEYS_DATA.forEach(item => {
+        const keyEl = document.createElement('div');
+        keyEl.className = `key ${item.black ? 'black-key' : 'white-key'}`;
+        keyEl.dataset.note = item.note;
+        keyEl.dataset.key = item.key.toUpperCase();
+
+        keyEl.innerHTML = `
+          <span class="key-shortcut">${item.key}</span>
+          <span class="key-note">${item.note}</span>
+          <span class="key-solfege">${item.solfege}</span>
+        `;
+
+        // 點擊事件
+        keyEl.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          triggerPianoKey(keyEl, item.note, `${item.solfege} (${item.note})`);
+        });
+
+        pianoKeyboard.appendChild(keyEl);
+      });
+    }
+
+    function triggerPianoKey(keyEl, note, label) {
+      if (!keyEl) return;
+      keyEl.classList.add('active');
+      playPianoNote(NOTE_FREQS[note], label);
+      spawnParticles(keyEl);
+      setTimeout(() => {
+        keyEl.classList.remove('active');
+      }, 180);
+
+      checkPracticeGuide(note);
+    }
+
+    /* =========================================================================
+       木琴、直笛、爵士鼓事件綁定
+       ========================================================================= */
+    // 奧福木琴點擊
+    document.querySelectorAll('.xylo-bar').forEach(bar => {
+      bar.addEventListener('pointerdown', () => {
+        const note = bar.dataset.note;
+        const solfege = bar.dataset.solfege;
+        bar.classList.add('hit');
+        playXylophoneNote(NOTE_FREQS[note], `${solfege} (${note})`);
+        spawnParticles(bar);
+        setTimeout(() => bar.classList.remove('hit'), 250);
+        checkPracticeGuide(note);
+      });
+    });
+
+    // 爵士鼓點擊
+    document.querySelectorAll('.drum-piece').forEach(piece => {
+      piece.addEventListener('pointerdown', () => {
+        const drumType = piece.dataset.drum;
+        piece.classList.add('hit');
+        playDrum(drumType);
+        spawnParticles(piece);
+        setTimeout(() => piece.classList.remove('hit'), 300);
+      });
+    });
+
+    // 直笛音階按鈕點擊
+    document.querySelectorAll('.rec-note-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.rec-note-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const note = btn.dataset.note;
+        const fingering = btn.dataset.fingering;
+        updateRecorderHoles(fingering);
+        playRecorderNote(NOTE_FREQS[note], `直笛 ${btn.querySelector('strong').innerText}`);
+        spawnParticles(btn);
+        checkPracticeGuide(note);
+      });
+    });
+
+    // 直笛笛身孔位直接觸控點選
+    document.querySelectorAll('.recorder-hole').forEach(hole => {
+      hole.addEventListener('click', () => {
+        hole.classList.toggle('closed');
+        calcRecorderSoundFromHoles();
+      });
+    });
+
+    function updateRecorderHoles(fingeringStr) {
+      const holes = document.querySelectorAll('.recorder-hole');
+      holes.forEach((h, index) => {
+        if (fingeringStr[index] === '1') {
+          h.classList.add('closed');
+        } else {
+          h.classList.remove('closed');
+        }
+      });
+    }
+
+    function calcRecorderSoundFromHoles() {
+      // 根據孔洞閉合數估算音高 (六年級常見基本指法推算)
+      const holes = Array.from(document.querySelectorAll('.recorder-hole'));
+      const closedCount = holes.filter(h => h.classList.contains('closed')).length;
+      let matchedNote = 'C4';
+      if (closedCount >= 8) matchedNote = 'C4';
+      else if (closedCount === 7) matchedNote = 'D4';
+      else if (closedCount === 6) matchedNote = 'E4';
+      else if (closedCount === 5) matchedNote = 'F4';
+      else if (closedCount === 4) matchedNote = 'G4';
+      else if (closedCount === 3) matchedNote = 'A4';
+      else if (closedCount === 2) matchedNote = 'B4';
+      else matchedNote = 'C5';
+
+      playRecorderNote(NOTE_FREQS[matchedNote], `直笛推估 ${matchedNote}`);
+    }
+
+    /* =========================================================================
+       電腦實體鍵盤對應映射 (Keyboard Shortcut Integration)
+       ========================================================================= */
+    const KEYBOARD_MAP = {
+      // 鋼琴快捷鍵
+      'KeyA': () => triggerPianoByKey('C4'),
+      'KeyW': () => triggerPianoByKey('C#4'),
+      'KeyS': () => triggerPianoByKey('D4'),
+      'KeyE': () => triggerPianoByKey('D#4'),
+      'KeyD': () => triggerPianoByKey('E4'),
+      'KeyF': () => triggerPianoByKey('F4'),
+      'KeyT': () => triggerPianoByKey('F#4'),
+      'KeyG': () => triggerPianoByKey('G4'),
+      'KeyY': () => triggerPianoByKey('G#4'),
+      'KeyH': () => triggerPianoByKey('A4'),
+      'KeyU': () => triggerPianoByKey('A#4'),
+      'KeyJ': () => triggerPianoByKey('B4'),
+      'KeyK': () => triggerPianoByKey('C5'),
+      // 爵士鼓快捷鍵
+      'Space': () => triggerDrumByKey('bass'),
+      // 數字鍵 1~8 敲擊木琴
+      'Digit1': () => triggerXyloByIndex(0),
+      'Digit2': () => triggerXyloByIndex(1),
+      'Digit3': () => triggerXyloByIndex(2),
+      'Digit4': () => triggerXyloByIndex(3),
+      'Digit5': () => triggerXyloByIndex(4),
+      'Digit6': () => triggerXyloByIndex(5),
+      'Digit7': () => triggerXyloByIndex(6),
+      'Digit8': () => triggerXyloByIndex(7),
+    };
+
+    function triggerPianoByKey(note) {
+      const keyEl = document.querySelector(`.piano-keyboard .key[data-note="${note}"]`);
+      if (keyEl) {
+        const item = PIANO_KEYS_DATA.find(k => k.note === note);
+        triggerPianoKey(keyEl, note, `${item.solfege} (${note})`);
+      }
+    }
+
+    function triggerDrumByKey(drumType) {
+      const drumEl = document.querySelector(`.drum-piece[data-drum="${drumType}"]`);
+      if (drumEl) {
+        drumEl.classList.add('hit');
+        playDrum(drumType);
+        spawnParticles(drumEl);
+        setTimeout(() => drumEl.classList.remove('hit'), 250);
+      }
+    }
+
+    function triggerXyloByIndex(index) {
+      const bars = document.querySelectorAll('.xylo-bar');
+      if (bars[index]) {
+        bars[index].dispatchEvent(new Event('pointerdown'));
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      const code = e.code;
+      if (KEYBOARD_MAP[code]) {
+        KEYBOARD_MAP[code]();
+      }
+    });
+
+    /* =========================================================================
+       分頁標籤切換 (Tabs Switching)
+       ========================================================================= */
+    let currentInstrument = 'piano';
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const instrumentPanels = document.querySelectorAll('.instrument-panel');
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        instrumentPanels.forEach(p => p.classList.remove('active'));
+
+        btn.classList.add('active');
+        const targetId = `${btn.dataset.target}-panel`;
+        const targetPanel = document.getElementById(targetId);
+        if (targetPanel) {
+          targetPanel.classList.add('active');
+          currentInstrument = btn.dataset.target;
+        }
+      });
+    });
+
+    /* =========================================================================
+       六年級名曲示範與跟彈導引系統 (Melody Follower & Songs)
+       ========================================================================= */
+    const SONGS = {
+      joy: {
+        title: '歡樂頌 (Ode to Joy)',
+        notes: ['E4','E4','F4','G4', 'G4','F4','E4','D4', 'C4','C4','D4','E4', 'E4','D4','D4'],
+        labels: ['Mi','Mi','Fa','Sol', 'Sol','Fa','Mi','Re', 'Do','Do','Re','Mi', 'Mi','Re','Re']
+      },
+      star: {
+        title: '小星星 (Twinkle Star)',
+        notes: ['C4','C4','G4','G4', 'A4','A4','G4', 'F4','F4','E4','E4', 'D4','D4','C4'],
+        labels: ['Do','Do','Sol','Sol', 'La','La','Sol', 'Fa','Fa','Mi','Mi', 'Re','Re','Do']
+      },
+      spring: {
+        title: '望春風 (Spring Breeze)',
+        notes: ['G4','A4','C5','A4', 'G4','E4','G4', 'A4','C5','D5','C5'],
+        labels: ['Sol','La','高Do','La', 'Sol','Mi','Sol', 'La','高Do','高Re','高Do']
+      },
+      greensleeves: {
+        title: '綠袖子 (Greensleeves)',
+        notes: ['A4','C5','D5','E5','F5','E5','D5','B4','G4'],
+        labels: ['La','高Do','高Re','高Mi','高Fa','高Mi','高Re','Si','Sol']
+      }
+    };
+
+    let isGuideActive = false;
+    let currentSongIndex = 0;
+    let selectedSongKey = 'joy';
+
+    const songSelect = document.getElementById('songSelect');
+    const noteStream = document.getElementById('noteStream');
+    const btnPlayDemo = document.getElementById('btnPlayDemo');
+    const btnFollowGuide = document.getElementById('btnFollowGuide');
+
+    songSelect.addEventListener('change', () => {
+      selectedSongKey = songSelect.value;
+      renderSongSheet();
+    });
+
+    function renderSongSheet() {
+      const song = SONGS[selectedSongKey];
+      noteStream.innerHTML = '';
+      currentSongIndex = 0;
+
+      song.labels.forEach((lbl, idx) => {
+        const item = document.createElement('span');
+        item.className = `stream-note ${idx === 0 ? 'current' : ''}`;
+        item.innerText = `${lbl} (${song.notes[idx]})`;
+        item.dataset.index = idx;
+        noteStream.appendChild(item);
+      });
+
+      highlightGuideKey();
+    }
+
+    function highlightGuideKey() {
+      // 清除先前的指引發光
+      document.querySelectorAll('.guide-hint').forEach(el => el.classList.remove('guide-hint'));
+
+      if (!isGuideActive) return;
+      const song = SONGS[selectedSongKey];
+      if (currentSongIndex >= song.notes.length) return;
+
+      const targetNote = song.notes[currentSongIndex];
+      const pianoKey = document.querySelector(`.piano-keyboard .key[data-note="${targetNote}"]`);
+      if (pianoKey) {
+        pianoKey.classList.add('guide-hint');
+      }
+    }
+
+    function checkPracticeGuide(playedNote) {
+      if (!isGuideActive) return;
+      const song = SONGS[selectedSongKey];
+      if (currentSongIndex >= song.notes.length) return;
+
+      if (song.notes[currentSongIndex] === playedNote) {
+        const notesElements = noteStream.querySelectorAll('.stream-note');
+        if (notesElements[currentSongIndex]) {
+          notesElements[currentSongIndex].classList.remove('current');
+          notesElements[currentSongIndex].classList.add('passed');
+        }
+
+        currentSongIndex++;
+
+        if (currentSongIndex < song.notes.length) {
+          if (notesElements[currentSongIndex]) {
+            notesElements[currentSongIndex].classList.add('current');
+            notesElements[currentSongIndex].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+          }
+          highlightGuideKey();
+        } else {
+          // 通關祝賀
+          currentNoteText.innerText = '🎉 完美演奏！太棒了！';
+          currentNoteText.style.color = '#06d6a0';
+          setTimeout(() => {
+            currentNoteText.style.color = 'var(--gold)';
+            renderSongSheet();
+          }, 2500);
+        }
+      }
+    }
+
+    btnFollowGuide.addEventListener('click', () => {
+      isGuideActive = !isGuideActive;
+      btnFollowGuide.classList.toggle('active', isGuideActive);
+      btnFollowGuide.innerHTML = isGuideActive ? '<span>✨</span> 關閉導引' : '<span>🌟</span> 開啟按鍵引導';
+      highlightGuideKey();
+    });
+
+    // 自動示範演奏 (Auto Play Demo)
+    let isDemoPlaying = false;
+    btnPlayDemo.addEventListener('click', async () => {
+      if (isDemoPlaying) return;
+      isDemoPlaying = true;
+      btnPlayDemo.disabled = true;
+      btnPlayDemo.innerHTML = '<span>⏳</span> 示範演奏中...';
+
+      const song = SONGS[selectedSongKey];
+      renderSongSheet();
+
+      for (let i = 0; i < song.notes.length; i++) {
+        const note = song.notes[i];
+        const freq = NOTE_FREQS[note] || 440;
+
+        // 更新簡譜進度
+        const notesElements = noteStream.querySelectorAll('.stream-note');
+        notesElements.forEach(n => n.classList.remove('current'));
+        if (notesElements[i]) {
+          notesElements[i].classList.add('current');
+          notesElements[i].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }
+
+        // 觸發對應樂器聲
+        if (currentInstrument === 'piano') {
+          triggerPianoByKey(note);
+        } else if (currentInstrument === 'xylophone') {
+          playXylophoneNote(freq, `${song.labels[i]} (${note})`);
+        } else if (currentInstrument === 'recorder') {
+          playRecorderNote(freq, `直笛 ${song.labels[i]}`);
+        } else {
+          playPianoNote(freq, `${song.labels[i]} (${note})`);
+        }
+
+        await new Promise(r => setTimeout(r, 450));
+      }
+
+      isDemoPlaying = false;
+      btnPlayDemo.disabled = false;
+      btnPlayDemo.innerHTML = '<span>▶</span> 示範演奏';
+    });
+
+    /* =========================================================================
+       錄音與創作回放 (Record & Playback)
+       ========================================================================= */
+    let isRecording = false;
+    let recordStartTime = 0;
+    let recordTrack = [];
+
+    const btnRecord = document.getElementById('btnRecord');
+    const btnPlayRecord = document.getElementById('btnPlayRecord');
+
+    btnRecord.addEventListener('click', () => {
+      if (!isRecording) {
+        // 開始錄音
+        initAudio();
+        isRecording = true;
+        recordStartTime = Date.now();
+        recordTrack = [];
+        btnRecord.classList.add('recording');
+        btnRecord.innerHTML = '<span>⏹</span> 停止錄音';
+        btnPlayRecord.disabled = true;
+      } else {
+        // 停止錄音
+        isRecording = false;
+        btnRecord.classList.remove('recording');
+        btnRecord.innerHTML = '<span>⏺</span> 開始錄音';
+        if (recordTrack.length > 0) {
+          btnPlayRecord.disabled = false;
+          currentNoteText.innerText = `已儲存 ${recordTrack.length} 個音符創作！`;
+        }
+      }
+    });
+
+    btnPlayRecord.addEventListener('click', async () => {
+      if (recordTrack.length === 0) return;
+      btnPlayRecord.disabled = true;
+      btnPlayRecord.innerHTML = '<span>▶</span> 回放中...';
+
+      const startTime = Date.now();
+      for (const item of recordTrack) {
+        const targetDelay = item.time;
+        const currentElapsed = Date.now() - startTime;
+        const waitMs = Math.max(0, targetDelay - currentElapsed);
+
+        await new Promise(r => setTimeout(r, waitMs));
+
+        // 根據記錄音符進行播放
+        const noteMatch = item.label.match(/\((.*?)\)/);
+        const noteKey = noteMatch ? noteMatch[1] : 'C4';
+        const freq = NOTE_FREQS[noteKey] || 440;
+
+        playPianoNote(freq, item.label);
+      }
+
+      btnPlayRecord.disabled = false;
+      btnPlayRecord.innerHTML = '<span>🔁</span> 回放創作';
+    });
+
+    /* =========================================================================
+       頂部即時音訊頻譜與波形 Canvas 繪製 (Audio Visualizer Canvas)
+       ========================================================================= */
+    const visualizerCanvas = document.getElementById('visualizerCanvas');
+    const vCtx = visualizerCanvas.getContext('2d');
+
+    function resizeVisualizer() {
+      visualizerCanvas.width = visualizerCanvas.parentElement.clientWidth;
+      visualizerCanvas.height = visualizerCanvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeVisualizer);
+    resizeVisualizer();
+
+    function drawVisualizer() {
+      requestAnimationFrame(drawVisualizer);
+      vCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+
+      if (!analyserNode) {
+        // 未初始化時繪製微光待機流動波形
+        drawIdleWave();
+        return;
+      }
+
+      const bufferLength = analyserNode.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyserNode.getByteFrequencyData(dataArray);
+
+      const width = visualizerCanvas.width;
+      const height = visualizerCanvas.height;
+      const barWidth = (width / bufferLength) * 2.4;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * height * 0.85;
+
+        const gradient = vCtx.createLinearGradient(0, height, 0, height - barHeight);
+        gradient.addColorStop(0, '#4361ee');
+        gradient.addColorStop(0.5, '#4cc9f0');
+        gradient.addColorStop(1, '#f72585');
+
+        vCtx.fillStyle = gradient;
+        vCtx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+
+        x += barWidth;
+      }
+    }
+
+    let idlePhase = 0;
+    function drawIdleWave() {
+      const w = visualizerCanvas.width;
+      const h = visualizerCanvas.height;
+      idlePhase += 0.03;
+
+      vCtx.beginPath();
+      vCtx.moveTo(0, h / 2);
+      for (let x = 0; x < w; x += 10) {
+        const y = h / 2 + Math.sin(x * 0.015 + idlePhase) * 6;
+        vCtx.lineTo(x, y);
+      }
+      vCtx.strokeStyle = 'rgba(76, 201, 240, 0.25)';
+      vCtx.lineWidth = 2;
+      vCtx.stroke();
+    }
+    drawVisualizer();
+
+    /* =========================================================================
+       背景粒子與音符噴發特效 (Floating Musical Notes Canvas)
+       ========================================================================= */
+    const bgCanvas = document.getElementById('notesBgCanvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeBgCanvas() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeBgCanvas);
+    resizeBgCanvas();
+
+    const MUSIC_SYMBOLS = ['♩', '♪', '♫', '♬', '♭', '♮', '♯', '𝄞'];
+
+    function spawnParticles(sourceElement) {
+      const rect = sourceElement.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top;
+
+      for (let i = 0; i < 6; i++) {
+        particles.push({
+          x: originX,
+          y: originY,
+          vx: (Math.random() - 0.5) * 5,
+          vy: -(Math.random() * 4 + 3),
+          size: Math.random() * 16 + 14,
+          symbol: MUSIC_SYMBOLS[Math.floor(Math.random() * MUSIC_SYMBOLS.length)],
+          color: ['#4cc9f0', '#f72585', '#ffb703', '#06d6a0'][Math.floor(Math.random() * 4)],
+          alpha: 1,
+          rot: (Math.random() - 0.5) * 0.4
+        });
+      }
+    }
+
+    function renderParticles() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.08; // 輕微重力
+        p.alpha -= 0.015;
+
+        bgCtx.save();
+        bgCtx.globalAlpha = Math.max(0, p.alpha);
+        bgCtx.font = `${p.size}px Arial`;
+        bgCtx.fillStyle = p.color;
+        bgCtx.fillText(p.symbol, p.x, p.y);
+        bgCtx.restore();
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+      requestAnimationFrame(renderParticles);
+    }
+    renderParticles();
+
+    /* =========================================================================
+       百科彈窗與殘響開關
+       ========================================================================= */
+    const knowledgeModal = document.getElementById('knowledgeModal');
+    const btnKnowledge = document.getElementById('btnKnowledge');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+
+    btnKnowledge.addEventListener('click', () => knowledgeModal.classList.add('open'));
+    btnCloseModal.addEventListener('click', () => knowledgeModal.classList.remove('open'));
+    knowledgeModal.addEventListener('click', (e) => {
+      if (e.target === knowledgeModal) knowledgeModal.classList.remove('open');
+    });
+
+    const btnSoundFX = document.getElementById('btnSoundFX');
+    const fxStatus = document.getElementById('fxStatus');
+    btnSoundFX.addEventListener('click', () => {
+      isReverbEnabled = !isReverbEnabled;
+      fxStatus.innerText = isReverbEnabled ? '開' : '關';
+      btnSoundFX.style.background = isReverbEnabled ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)';
+    });
+
+    // 初始化渲染
+    buildPiano();
+    renderSongSheet();
+  </script>
+</body>
+</html>
